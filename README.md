@@ -1,0 +1,1 @@
+# plugins-events-manager-wpml
