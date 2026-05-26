@@ -4,11 +4,11 @@ Donate link: https://wp-events-plugin.com
 Tags: events, multilingual, languages, translation, wpml, event, event registration, event calendar, events calendar, event management, events-manager
 Requires at least: 3.3
 Tested up to: 6.8
-Stable tag: 2.0.4
+Stable tag: 2.1
 License: GPLv2
-Requires PHP: 5.2
+Requires PHP: 7.4
 
-Integrates the Events Manager and WPML plugins together to provide a smoother multilingual experience (Requires Events Manager and WPML)
+Integrates the Events Manager and WPML plugins together to provide a smoother multilingual experience (Requires Events Manager and WPML activated)
 
 == Description ==
 
@@ -47,6 +47,16 @@ This plugin requires WPML and Events Manager to be installed BEFORE installing t
 Events Manager WPML works like any standard Wordpress plugin. [See the Codex for installation instructions](http://codex.wordpress.org/Managing_Plugins#Installing_Plugins).
 
 == Changelog ==
+= 2.1 =
+* Fixed: WPML's "Duplicate" action could fatal with "Call to a member function is_recurring() on null" when the original event had been removed or its translation record was stale — duplicating a translated event is now safe in all states (companion fix in Events Manager 7.2.4+) - addresses issues #117, #118
+* Fixed: saving an event could fatal with "Call to a member function validate()" when Physical Locations are disabled in EM settings, or when the location linked to the event had been deleted (companion fix in Events Manager 7.2.4+) - addresses issue #94
+* Fixed: saving a translated recurring event no longer aborts if one of the recurrence rows is missing or out of sync (companion fix in Events Manager 7.2.4+) - addresses issues #117, #124
+* Added: WPML translation (globe) icons now appear next to several settings fields that were missing them:
+ * Events > Settings > Formatting > Search Form — Tag and Tags filter labels and placeholders (companion fix in Events Manager 7.2.4+) - addresses issue #109
+ * Events > Settings > Bookings — "Event cancelled" message and button, paid/processing submit button text, booking summary default text, and the section headers used on the front-end booking form (Tickets, Registration Information, Booking Summary, Payment and Confirmation, Booking Confirmation) (companion fix in Events Manager 7.2.4+) - addresses issues #111, #121
+ * Events > Settings > Bookings > Waitlists — every waitlist label, feedback message, and email subject/body, when the Waitlists feature is enabled (companion fix in Events Manager Pro 3.7.3+) - addresses issue #106
+* Changed: minimum PHP requirement bumped to 7.4 to match Events Manager core
+
 = 2.0.4 =
 * fixed language recognition issues in recent WPML updates even though request lang paramater and em_lang is supplied which causes booking emails and feedback strings not being correctly translated
 

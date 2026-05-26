@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Events Manager and WPML Compatibility
-Version: 2.0.4
+Version: 2.1
 Plugin URI: https://wp-events-plugin.com
 Description: Integrates the Events Manager and WPML plugins together to provide a smoother multilingual experience (EM and WPML also needed)
 Author: Pixelite
@@ -41,7 +41,7 @@ To close some gaps, extra steps are needed
 		- my bookings page
  */
 
-define('EM_WPML_VERSION','2.0.4');
+define('EM_WPML_VERSION','2.1');
 
 class EM_WPML{
     public static function init(){
@@ -67,6 +67,7 @@ class EM_WPML{
 		add_filter('em_ml_langs','EM_WPML::em_ml_langs');
 		add_filter('em_ml_wplang','EM_WPML::em_ml_wplang');
 		add_filter('em_ml_current_language','EM_WPML::em_ml_current_language');
+	    add_action('em_ml_switch_locale', 'EM_WPML::em_ml_switch_locale', 10, 1);
 		
 		// original event/location filters
 		add_filter('em_ml_get_original','EM_WPML::get_original',10,2);
@@ -89,6 +90,7 @@ class EM_WPML{
 	    }
 	    include('em-wpml-permalinks.php');
 	    include('em-wpml-io.php');
+	    include('em-wpml-taxonomies.php');
 	
 	    // add js vars that override EM's
 	    add_filter('em_wp_localize_script', 'EM_WPML::em_wp_localize_script', 100);
@@ -128,6 +130,36 @@ class EM_WPML{
     	global $sitepress;
         EM_ML::$current_language = $sitepress->get_locale_from_language_code($lang);
     }
+	
+	/**
+	 * Hooks into the em_ml_switch_locale when a locale is switched via EM_ML::em_ml_switch_locale().
+	 * Esentially the switch_locale() function in WP which WPML doesn't seem to hook into therefore doesn't switch languages.
+	 *
+	 * Requires EM version 5.9.11.5 or greater.
+	 * @param $locale
+	 * @since 2.1
+	 * @see EM_ML::switch_locale()
+	 */
+    public static function em_ml_switch_locale( $locale ){
+    	global $sitepress;
+		$lang_code = $sitepress->get_language_code_from_locale($locale);
+	    $sitepress->switch_lang($lang_code);
+    }
+	
+	/**
+	 * Hooks into the em_ml_restore_locale when a locale is switched via EM_ML::em_ml_restore_locale().
+	 * Esentially the restore_locale() function in WP which WPML doesn't seem to hook into therefore doesn't switch languages back.
+	 *
+	 * Requires EM version 5.9.11.5 or greater.
+	 * @param $locale
+	 * @since 2.1
+	 * @see EM_ML::restore_locale()
+	 */
+	public static function em_ml_restore_locale( $locale ){
+		global $sitepress;
+		$lang_code = $sitepress->get_language_code_from_locale($locale);
+		$sitepress->switch_lang($lang_code);
+	}
     
     /**
      * Takes a post id, checks if the current language isn't the default language and returns a translated post id if it exists, used to switch our overriding pages or post types
@@ -389,13 +421,8 @@ class EM_WPML{
 		$current_language = $sitepress->get_locale_from_language_code($sitepress_lang);
 		// re-fix the current language in WPML if it still ignores our requests to change the language via 'lang'
 		$different_locale = !empty($_REQUEST['em_lang']) && array_key_exists($_REQUEST['em_lang'], EM_ML::$langs) && $current_language !== $_REQUEST['em_lang'];
-		$different_lang = !empty($_REQUEST['lang']) && array_key_exists($_REQUEST['lang'], EM_ML::$langs) && $sitepress_lang !== $_REQUEST['lang'];
-		if( $different_locale || $different_lang ){
-			if( $different_locale ) {
-				$lang_code = $sitepress->get_language_code_from_locale($_REQUEST['em_lang']);
-			}else{
-				$lang_code = $_REQUEST['lang'];
-			}
+		if( $different_locale ){
+			$lang_code = $sitepress->get_language_code_from_locale($_REQUEST['em_lang']);
 			$sitepress->switch_lang($lang_code);
 			$sitepress_lang = $sitepress->get_current_language();
 			$current_language = $sitepress->get_locale_from_language_code($sitepress_lang);
@@ -487,8 +514,11 @@ class EM_WPML{
 add_action('wpml_after_init', 'EM_WPML::init'); //should be before init priority 10 which is when EM_ML loads
 
 // Add this plugin to EM's dev updates check (EM 5.9.9.2 and later)
-add_filter('em_org_dev_version_slugs', function( $plugin_slugs ){
-	$plugin_slugs['events-manager-wpml'] = plugin_basename( __FILE__ );
+add_filter('em_org_dev_versions', function( $plugin_slugs ){
+	$plugin_slugs['events-manager-wpml'] = array(
+		'slug' => plugin_basename( __FILE__ ),
+		'version' => EM_WPML_VERSION,
+	);
 	return $plugin_slugs;
 });
 
