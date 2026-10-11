@@ -3,7 +3,7 @@ Contributors: pxlite, msykes
 Donate link: https://wp-events-plugin.com
 Tags: events, multilingual, languages, translation, wpml, event, event registration, event calendar, events calendar, event management, events-manager
 Requires at least: 3.3
-Tested up to: 6.8
+Tested up to: 7.1
 Stable tag: 2.1
 License: GPLv2
 Requires PHP: 7.4
